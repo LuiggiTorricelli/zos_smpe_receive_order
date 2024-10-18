@@ -1,0 +1,16 @@
+galaxy_info:
+  role_name: "zos_smpe_receive_order"
+  author: "Luiggi Torricelli"
+  description: "This Ansible role will execute the SMP/E RECEIVE ORDER command to submit an Internet Service Retrieval request to the IBM Automated Delivery Request server."
+  license: "Apache-2.0"
+  min_ansible_version: "2.15"
+  galaxy_tags:
+    - zos
+    - mainframe
+    - smpe
+    - order
+    - receive
+    - software
+collections:
+  - ibm.ibm_zos_core
+dependencies: []
