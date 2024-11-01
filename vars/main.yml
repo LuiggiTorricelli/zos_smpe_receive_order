@@ -1,0 +1,5 @@
+# Options to be ignored on the SMPCNTL
+smpe_ignore_options:
+  - FROMNETWORK
+  - FROMNET
+  - ORDER

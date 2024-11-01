@@ -1,0 +1,32 @@
+SET BOUNDARY(GLOBAL).
+RECEIVE
+{% for option in smpe_options %}
+{% set opt = option %}
+{% if opt | trim | upper | regex_replace('^([A-Z]+)\(*[\\s\\S]*$', '\\1') not in smpe_ignore_options %}
+  {{ opt | upper | regex_replace('(?: *, *| +)', '\n    ') | regex_replace('\(', '(\n    ') | regex_replace('\)', '\n  )') | regex_replace('\.\s*$', '') | regex_replace(' +\n', '') }}
+{% endif %}
+{% endfor %}
+  ORDER(
+    ORDERSERVER(ORDRSRVR)
+    CLIENT(CLNTINFO)
+    CONTENT(
+      {{ smpe_order.content | upper | regex_replace('(?: *, *| +)', '\n        ') | regex_replace('\(', '(\n        ') | regex_replace('\)', '\n      )') | regex_replace('\.\s*$', '') | regex_replace(' +\n', '') }}
+    )
+{% if 'fortgtzones' in smpe_order %}
+    FORTGTZONES(
+{% for tgtzone in smpe_order.fortgtzones | unique %}
+      {{ tgtzone | upper }}
+{% endfor %}
+    )
+{% endif %}
+{% if 'wait' in smpe_order %}
+    WAIT({{ smpe_order.wait | string }})
+{% endif %}
+{% if 'pending' in smpe_order %}
+    PENDING({{ smpe_order.pending | upper }})
+{% endif %}
+{% if 'transferonly' in smpe_order and smpe_order.transferonly | default(False) %}
+    TRANSFERONLY
+{% endif %}
+  )
+.

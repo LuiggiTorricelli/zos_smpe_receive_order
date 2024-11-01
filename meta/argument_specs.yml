@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    short_description: Main set of tasks of the role zos_smpe_receive_order.
+    author: Luiggi Torricelli
+    options:
+      show_output:
+        default: true
+        description: "A boolean to determine if output should be displayed or not at the end."
+        required: false
+        type: "bool"
+      smpe_client:
+        description: "An object containing options considered on the CLIENTINFO DD statement."
+        required: true
+        type: "dict"
+      smpe_csi:
+        description: "A string containing the SMP/E GLOBAL CSI data set name to be used."
+        required: true
+        type: "str"
+      smpe_options:
+        default: []
+        description: "A list containing options to be considered on the RECEIVE statement."
+        required: false
+        type: "list"
+      smpe_order:
+        description: "An object containing the attributes for the ORDER parameter."
+        required: true
+        type: "dict"
+      smpe_orderserver:
+        description: "An object containing options considered on the ORDERSERVER DD statement."
+        required: true
+        type: "dict"
+      smpe_smpnts:
+        description: "A string containing the SMPNTS (SMP/E Network Temporary Store) directory on z/OS Unix to be used for temporary storage."
+        required: true
+        type: "str"

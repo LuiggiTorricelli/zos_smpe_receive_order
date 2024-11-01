@@ -1,0 +1,5 @@
+# Display output at the end or not
+show_output: true
+
+# SMP/E options to be used on RECEIVE ORDER
+smpe_options: []

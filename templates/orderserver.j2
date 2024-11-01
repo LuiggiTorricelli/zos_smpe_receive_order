@@ -1,0 +1,15 @@
+<ORDERSERVER
+{% if 'url' in smpe_orderserver %}
+  url="{{ smpe_orderserver.url | trim }}"
+{% endif %}
+{% if 'keyring' in smpe_orderserver %}
+  keyring="{{ smpe_orderserver.keyring | trim }}"
+{% endif %}
+{% if 'certificate' in smpe_orderserver %}
+  certificate="{{ smpe_orderserver.certificate | trim }}"
+{% endif %}
+{% if 'inventory' in smpe_orderserver %}
+  inventory="{{ smpe_orderserver.inventory | trim }}"
+{% endif %}
+>
+</ORDERSERVER>

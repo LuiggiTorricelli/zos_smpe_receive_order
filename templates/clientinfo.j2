@@ -1,0 +1,93 @@
+<CLIENT
+{% if 'debug' in smpe_client %}
+  debug="{{ 'yes' if smpe_client.debug else 'no' }}"
+{% endif %}
+{% if 'ftpccc' in smpe_client %}
+  ftpccc="{{ 'yes' if smpe_client.ftpccc else 'no' }}"
+{% endif %}
+{% if 'retry' in smpe_client %}
+  retry="{{ smpe_client.retry | string | trim }}"
+{% endif %}
+{% if 'javadebugoptions' in smpe_client %}
+  javadebugoptions="{{ smpe_client.javadebugoptions | trim }}"
+{% endif %}
+{% if 'javahome' in smpe_client %}
+  javahome="{{ smpe_client.javahome | trim }}"
+{% endif %}
+{% if 'classpath' in smpe_client %}
+  classpath="{{ smpe_client.classpath | trim }}"
+{% endif %}
+{% if 'downloadmethod' in smpe_client %}
+  downloadmethod="{{ smpe_client.downloadmethod | trim }}"
+{% endif %}
+{% if 'downloadkeyring' in smpe_client %}
+  downloadkeyring="{{ smpe_client.downloadkeyring | trim }}"
+{% endif %}
+{% if 'signaturekeyring' in smpe_client %}
+  signaturekeyring="{{ smpe_client.signaturekeyring | trim }}"
+{% endif %}
+>
+{% if 'firewall' in smpe_client %}
+  <FIREWALL>
+{% if 'server' in smpe_client.firewall %}
+    <SERVER
+{% if 'host' in smpe_client.firewall.server %}
+      host="{{ smpe_client.firewall.server.host }}"
+{% endif %}
+{% if 'account' in smpe_client.firewall.server %}
+      account="{{ smpe_client.firewall.server.account }}"
+{% endif %}
+{% if 'port' in smpe_client.firewall.server %}
+      port="{{ smpe_client.firewall.server.port }}"
+{% endif %}
+{% if 'user' in smpe_client.firewall.server %}
+      user="{{ smpe_client.firewall.server.user }}"
+{% endif %}
+{% if 'pw' in smpe_client.firewall.server %}
+      pw="{{ smpe_client.firewall.server.pw }}"
+{% endif %}
+    >
+    </SERVER>
+{% endif %}
+{% if 'firecmd' in smpe_client.firewall %}
+{% for cmd in smpe_client.firewall.firecmd %}
+    <FIRECMD>{{ cmd }}</FIRECMD>
+{% endfor %}
+{% endif %}
+  </FIREWALL>
+{% endif %}
+{% if 'httpproxy' in smpe_client %}
+  <HTTPPROXY
+{% if 'host' in smpe_client.httpproxy %}
+    host="{{ smpe_client.httpproxy.host }}"
+{% endif %}
+{% if 'port' in smpe_client.httpproxy %}
+    port="{{ smpe_client.httpproxy.port }}"
+{% endif %}
+{% if 'user' in smpe_client.httpproxy %}
+    user="{{ smpe_client.httpproxy.user }}"
+{% endif %}
+{% if 'pw' in smpe_client.httpproxy %}
+    pw="{{ smpe_client.httpproxy.pw }}"
+{% endif %}
+  >
+  </HTTPPROXY>
+{% endif %}
+{% if 'httpsocksproxy' in smpe_client %}
+  <HTTPSOCKSPROXY
+{% if 'host' in smpe_client.httpsocksproxy %}
+    host="{{ smpe_client.httpsocksproxy.host }}"
+{% endif %}
+{% if 'port' in smpe_client.httpsocksproxy %}
+    port="{{ smpe_client.httpsocksproxy.port }}"
+{% endif %}
+{% if 'user' in smpe_client.httpsocksproxy %}
+    user="{{ smpe_client.httpsocksproxy.user }}"
+{% endif %}
+{% if 'pw' in smpe_client.httpsocksproxy %}
+    pw="{{ smpe_client.httpsocksproxy.pw }}"
+{% endif %}
+  >
+  </HTTPSOCKSPROXY>
+{% endif %}
+</CLIENT>

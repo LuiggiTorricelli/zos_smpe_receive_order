@@ -1,0 +1,92 @@
+---
+- name: "Assert that input variables were informed correctly."
+  ansible.builtin.assert:
+    that:
+      - (smpe_csi is string) and (smpe_csi is iterable) and (smpe_csi is not mapping)
+      - (smpe_options is not string) and (smpe_options is iterable) and (smpe_options is not mapping)
+      - (smpe_smpnts is string) and (smpe_smpnts is iterable) and (smpe_smpnts is not mapping)
+      - (smpe_csi | length > 0) and (smpe_csi | length <= 42) and (smpe_csi | trim == smpe_csi)
+      - (smpe_smpnts | length > 0) and (smpe_smpnts | trim == smpe_smpnts)
+    success_msg: "SUCCESS: The input variables were informed successfully!"
+    fail_msg: "ERROR: One or more input variables were wrongly informed. Make sure there are no extra spaces on the variables and the length is being respected."
+    quiet: true
+
+- name: "Assert that ORDER, CLIENTINFO and ORDERSERVER options were informed correctly."
+  ansible.builtin.assert:
+    that:
+      - smpe_order | isValidContent('ORDER')
+      - smpe_client | isValidContent('CLIENTINFO')
+      - smpe_orderserver | isValidContent('ORDERSERVER')
+    success_msg: "SUCCESS: The ORDER, CLIENTINFO and ORDERSERVER options were informed successfully!"
+    fail_msg: "ERROR: The ORDER, CLIENTINFO and/or the ORDERSERVER were informed incorrectly."
+    quiet: true
+
+- name: "Verify if informed SMP/E CSI data set exists."
+  ibm.ibm_zos_core.zos_find:
+    patterns: "{{ smpe_csi | upper }}"
+    resource_type: cluster
+  register: zos_smpe_receive_order_find_csi
+
+- name: "Fail play if informed SMP/E CSI data set does not exist."
+  ansible.builtin.fail:
+    msg: "ERROR: The informed SMP/E CSI data set '{{ smpe_csi | upper }}' was not found."
+  when: zos_smpe_receive_order_find_csi.data_sets | length == 0
+
+- name: "Execute GIMSMP program with SMP/E RECEIVE ORDER command to submit an Internet Service Retrieval request to the IBM Automated Delivery Request server."
+  ibm.ibm_zos_core.zos_mvs_raw:
+    program_name: gimsmp
+    parm: "PROCESS=WAIT"
+    auth: true
+    dds:
+      - dd_data_set:
+          dd_name: smpcsi
+          data_set_name: "{{ smpe_csi | upper }}"
+      - dd_unix:
+          dd_name: smpnts
+          disposition_normal: keep
+          path: "{{ smpe_smpnts }}"
+      - dd_output:
+          dd_name: smpout
+          return_content:
+            type: text
+      - dd_output:
+          dd_name: smprpt
+          return_content:
+            type: text
+      - dd_output:
+          dd_name: smplist
+          return_content:
+            type: text
+      - dd_output:
+          dd_name: sysprint
+          return_content:
+            type: text
+      - dd_vio:
+          dd_name: sysut1
+      - dd_vio:
+          dd_name: sysut2
+      - dd_vio:
+          dd_name: sysut3
+      - dd_vio:
+          dd_name: sysut4
+      - dd_input:
+          dd_name: clntinfo
+          content: "{{ lookup('template', 'clientinfo.j2') }}"
+      - dd_input:
+          dd_name: ordrsrvr
+          content: "{{ lookup('template', 'orderserver.j2') }}"
+      - dd_input:
+          dd_name: smpcntl
+          content: "{{ lookup('template', 'smpcntl.j2') }}"
+  register: zos_smpe_receive_order_output
+
+- name: "If return code is different than 0 or 4, fail and display the entire job output."
+  ansible.builtin.debug:
+    msg: "{{ zos_smpe_receive_order_output }}"
+  when: zos_smpe_receive_order_output.ret_code.code | int not in [0, 4]
+  failed_when: zos_smpe_receive_order_output.ret_code.code | int not in [0, 4]
+
+- name: "Display output content if show_output is true."
+  ansible.builtin.debug:
+    msg: "{{ zos_smpe_receive_order_output.dd_names | selectattr('dd_name', 'in', ['smpout', 'smprpt']) | list }}"
+  when: show_output
