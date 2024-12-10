@@ -120,9 +120,9 @@ On the scenario below, the role `zos_smpe_receive_order` is being used to receiv
 
 When this role is executed, it will execute the SMP/E RECEIVE ORDER command, failing and displaying its output if return code of the GIMSMP program is greater than 4, otherwise it will end successfully.
 
-A fact named `zos_smpe_receive_order_details` will be set the role runs successfully, containing details about the order that was made, such as the order ID, received SYSMODs and latest RSU and/or PUT source IDs assigned during the order. It will be displayed if `show_output` is set to `true`.
+A fact named `zos_smpe_receive_order_details` will be set if the role runs successfully, containing details about the order that was made, such as the order ID, received SYSMODs and latest RSU and/or PUT source IDs assigned during the order. It will be displayed if `show_output` is set to `true`.
 
-Be aware that the `latest_put` and `latest_rsu` attributes will be determined by all assignments that happened on the _RECEIVE summary report_, not only for the SYSMODs that were received. If no assignments of RSU and/or PUT source IDs are performed, the value of the attribute will be `NOT FOUND`.
+Be aware that the `latest_put` and `latest_rsu` attributes will be determined by all assignments that happened on the _RECEIVE summary report_, not only by the SYSMODs that were received. If no assignments of RSU and/or PUT source IDs are performed, the value of the attribute will be `NOT FOUND`.
 
     "zos_smpe_receive_order_details": {
         "latest_put": "PUT2406",
