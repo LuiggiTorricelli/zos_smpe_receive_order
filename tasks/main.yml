@@ -86,7 +86,43 @@
   when: zos_smpe_receive_order_output.ret_code.code | int not in [0, 4]
   failed_when: zos_smpe_receive_order_output.ret_code.code | int not in [0, 4]
 
-- name: "Display output content if show_output is true."
+- name: "Set fact containing the order number and the received SYSMODs."
+  ansible.builtin.set_fact:
+    zos_smpe_receive_order_details:
+      order_id: "{{ __smpout | regex_findall('GIM69144I +ORDER +(\\S+)') | first }}"
+      sysmods: "{{ __smprpt_sysmods | selectattr('sysmod_id', 'in', __smpout_sysmods) | list }}"
+      latest_rsu: "{{ __rsus | sort(reverse=true) | first | default('NOT FOUND') }}"
+      latest_put: "{{ __puts | sort(reverse=true) | first | default('NOT FOUND') }}"
+  vars:
+    __smpout: "{{ (zos_smpe_receive_order_output.dd_names | selectattr('dd_name', 'eq', 'smpout') | list | first).content | join('\n') }}"
+    __smprpt: "{{ (zos_smpe_receive_order_output.dd_names | selectattr('dd_name', 'eq', 'smprpt') | list | first).content | join('\n') }}"
+    __smpout_sysmods: "{{ __smpout | regex_findall('GIM22701I +RECEIVE +PROCESSING +WAS +SUCCESSFUL +FOR +SYSMOD +(\\S+)\\.') | list }}"
+    __smprpt_sysmods: |-
+      {%- set result = [] -%}
+      {%- set sysmods = ((__smprpt | regex_replace('( *SYSMOD +STATUS +TYPE +SOURCEID +FEATURE +STATUS FIELD COMMENTS *)', '<sep>') | regex_replace('\fPAGE \d+  +- +NOW SET.+\n', '') | regex_replace('\n +RECEIVE +\+\+HOLD/\+\+RELEASE SUMMARY REPORT', '<sep>')).split('<sep>')[1] | regex_replace('(?m)^(\S{1,7})', '<sep>\\1') | regex_replace('\n{2,}', '')).split('<sep>') | select() | list -%}
+      {%- for sysmod in sysmods -%}
+        {%- set ns = namespace(obj={}) -%}
+        {%- set source_ids = [] -%}
+        {%- set features = [] -%}
+        {{- ns.obj.__setitem__('sysmod_id', sysmod | regex_findall('^(\S+)') | first) -}}
+        {%- set content = sysmod.split('\n') | select() | list -%}
+        {%- for line in content -%}
+          {%- set parsed_line = line | regex_findall('.{7} {0,2}(.{0,12}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.*)') | flatten(levels=1) | map('trim') | list -%}
+          {%- if parsed_line[0] == 'ASSIGNED' -%}
+            {{- source_ids.append(parsed_line[2]) -}}
+          {%- elif parsed_line[0] == 'ASSOCIATED' -%}
+            {{- features.append(parsed_line[3]) -}}
+          {%- endif -%}
+        {%- endfor -%}
+        {{- ns.obj.__setitem__('source_ids', source_ids) -}}
+        {{- ns.obj.__setitem__('features', features) -}}
+        {{- result.append(ns.obj) -}}
+      {%- endfor -%}
+      {{- result -}}
+    __rsus: "{{ __smprpt_sysmods | map(attribute='source_ids') | flatten(levels=1) | select('match', 'RSU\\d{4}') | list }}"
+    __puts: "{{ __smprpt_sysmods | map(attribute='source_ids') | flatten(levels=1) | select('match', 'PUT\\d{4}') | list }}"
+
+- name: "Display details content if show_output is true."
   ansible.builtin.debug:
-    msg: "{{ zos_smpe_receive_order_output.dd_names | selectattr('dd_name', 'in', ['smpout', 'smprpt']) | list }}"
+    msg: "{{ zos_smpe_receive_order_details }}"
   when: show_output

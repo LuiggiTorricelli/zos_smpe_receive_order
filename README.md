@@ -80,7 +80,7 @@ None.
 
 ## Example Playbook
 
-On the scenario below, the role `zos_smpe_receive_order` is being used to receive and request, to the GLOBAL zone found in data set `SMPE.GLOBAL.CSI`, recommended PTFs (based on the latest RSU available) that are missing on the SMP/E target zone `RSU2409`, but ONLY for the FMIDs `HSQDD10` and `JSQDD1Q`.
+On the scenario below, the role `zos_smpe_receive_order` is being used to receive and request, to the GLOBAL zone found in data set `SMPE.GLOBAL.CSI`, recommended PTFs (based on the latest RSU available) that are missing on the SMP/E target zone `TGTZAAA`, but ONLY for the FMIDs `HSQDD10` and `JSQDD1Q`.
 
     - hosts: zos_server
       roles:
@@ -112,179 +112,47 @@ On the scenario below, the role `zos_smpe_receive_order` is being used to receiv
           smpe_order:
             content: "RECOMMENDED"
             fortgtzones:
-              - RSU2409
+              - TGTZAAA
           smpe_smpnts: "/usr/lpp/db2/smpnts/"
           show_output: true
 
 ## Sample Output
 
-When this role is successfully executed, it will fail if return code of the GIMSMP program is neither 0 nor 4, otherwise it will end successfully.
+When this role is executed, it will execute the SMP/E RECEIVE ORDER command, failing and displaying its output if return code of the GIMSMP program is greater than 4, otherwise it will end successfully.
 
-A fact named `zos_smpe_receive_order_output` is registered, containing the output of the SMP/E RECEIVE ORDER execution, based on the informed variables. It will be displayed if `show_output` is set to `true`.
+A fact named `zos_smpe_receive_order_details` will be set the role runs successfully, containing details about the order that was made, such as the order ID, received SYSMODs and latest RSU and/or PUT source IDs assigned during the order. It will be displayed if `show_output` is set to `true`.
 
-<details>
-    <summary><b><i>Click to see the sample output</i></b></summary>
+Be aware that the `latest_put` and `latest_rsu` attributes will be determined by all assignments that happened on the _RECEIVE summary report_, not only for the SYSMODs that were received. If no assignments of RSU and/or PUT source IDs are performed, the value of the attribute will be `NOT FOUND`.
 
-    "zos_smpe_receive_order_output": {
-        "backups": [],
-        "changed": true,
-        "dd_names": [
+    "zos_smpe_receive_order_details": {
+        "latest_put": "PUT2406",
+        "latest_rsu": "RSU2410",
+        "order_id": "ORD00001",
+        "sysmods": [
             {
-                "byte_count": 1621,
-                "content": [
-                    "\fPAGE 0001  - NOW SET TO GLOBAL ZONE          DATE 10/30/24  TIME 11:28:31  SMP/E 37.25   SMPOUT   OUTPUT",
-                    "",
-                    "GIM42401I    THE FOLLOWING PARAMETERS WERE SPECIFIED ON THE EXEC STATEMENT FOR GIMSMP: 'PROCESS=WAIT'.",
-                    "SET BOUNDARY(GLOBAL).",
-                    "GIM20501I    SET PROCESSING IS COMPLETE. THE HIGHEST RETURN CODE WAS 00.",
-                    "",
-                    "",
-                    "RECEIVE",
-                    "  LIST",
-                    "  FORFMID(",
-                    "    HSQDD10",
-                    "    JSQDD1Q",
-                    "  )",
-                    "  ORDER(",
-                    "    ORDERSERVER(ORDRSRVR)",
-                    "    CLIENT(CLNTINFO)",
-                    "    CONTENT(",
-                    "      RECOMMENDED",
-                    "    )",
-                    "    FORTGTZONES(",
-                    "      RSU2409",
-                    "    )",
-                    "  )",
-                    ".",
-                    "",
-                    "GIM68700I    ORDER ORD00001 HAS BEEN SENT TO THE SERVER AT https://eccgw01.boulder.ibm.com/services/projects/ecc/ws.",
-                    "GIM69144I    ORDER ORD00001 IS READY FOR DOWNLOAD.",
-                    "GIM66400I    THE TRANSFER IS COMPLETE FOR FILE",
-                    "             /usr/lpp/db2/smpnts/ORD00001-30October2024-11.32.35.687/GIMPAF.XML.",
-                    "GIM66400I    THE TRANSFER IS COMPLETE FOR FILE",
-                    "             /usr/lpp/db2/smpnts/ORD00001-30October2024-11.32.35.687/SMPPTFIN/S0001.SHOPZ.SXXXXXXX.SMPMCS.pax.Z.",
-                    "GIM66400I    THE TRANSFER IS COMPLETE FOR FILE",
-                    "             /usr/lpp/db2/smpnts/ORD00001-30October2024-11.32.35.687/SMPHOLD/S0002.SHOPZ.SXXXXXXX.SMPHOLD.pax.Z.",
-                    "GIM66400I    THE TRANSFER IS COMPLETE FOR FILE",
-                    "             /usr/lpp/db2/smpnts/ORD00001-30October2024-11.32.35.687/GIMPAF.XSL.",
-                    "GIM47600I    PACKAGE ORD00001-30October2024-11.32.35.687 WAS SUCCESSFULLY STAGED TO THE SMPNTS.",
-                    "",
-                    "",
-                    "",
-                    "GIM24801W    NO SYSMODS SATISFIED THE OPERANDS SPECIFIED ON THE RECEIVE COMMAND.",
-                    "GIM20501I    RECEIVE PROCESSING IS COMPLETE. THE HIGHEST RETURN CODE WAS 04.",
-                    "",
-                    "",
-                    "GIM20502I    SMP/E PROCESSING IS COMPLETE. THE HIGHEST RETURN CODE WAS 04. SMP/E IS AT LEVEL 37.25.",
-                    ""
+                "features": [],
+                "source_ids": [
+                    "ORD00001",
+                    "RSU2409",
                 ],
-                "dd_name": "smpout",
-                "name": "IBMUSER.P0397916.T0762002.C0000000",
-                "record_count": 45
+                "sysmod_id": "UI11111"
             },
             {
-                "byte_count": 3714,
-                "content": [
-                    "\fPAGE 0001  - NOW SET TO GLOBAL ZONE          DATE 10/30/24  TIME 11:28:31  SMP/E 37.25   SMPRPT   OUTPUT",
-                    "",
-                    "RECEIVE",
-                    "  LIST",
-                    "  FORFMID(",
-                    "    HSQDD10",
-                    "    JSQDD1Q",
-                    "  )",
-                    "  ORDER(",
-                    "    ORDERSERVER(ORDRSRVR)",
-                    "    CLIENT(CLNTINFO)",
-                    "    CONTENT(",
-                    "      RECOMMENDED",
-                    "    )",
-                    "    FORTGTZONES(",
-                    "      RSU2409",
-                    "    )",
-                    "  )",
-                    ".\fPAGE 0002  - NOW SET TO GLOBAL ZONE          DATE 10/30/24  TIME 11:32:52  SMP/E 37.25   SMPRPT   OUTPUT",
-                    "",
-                    "              RECEIVE  SUMMARY  REPORT",
-                    "",
-                    "",
-                    "",
-                    "SYSMOD   STATUS        TYPE      SOURCEID  FEATURE   STATUS FIELD COMMENTS",
-                    "",
-                    "",
-                    "                                                     *SYSMODS WITH SPECIFIED FMID(S) NOT FOUND IN SMPPTFIN*\fPAGE 0003  - NOW SET TO GLOBAL ZONE          DATE 10/30/24  TIME 11:32:52  SMP/E 37.25   SMPRPT   OUTPUT",
-                    "",
-                    "                                        RECEIVE ++HOLD/++RELEASE SUMMARY REPORT",
-                    "",
-                    "                           NOTE:  SMD NF   - SYSMOD NOT RELEASED - NOT FOUND IN THE GLOBAL ZONE",
-                    "                                  RSN NF   - SYSMOD NOT RELEASED - NOT HELD FOR THIS REASONID",
-                    "                                  INT HLD  - SYSMOD NOT RELEASED - CANNOT RELEASE INTERNAL SYS HOLD",
-                    "",
-                    "SYSMOD  TYPE STATUS   REASON  FMID                                  ++HOLD MCS STATEMENTS",
-                    "",
-                    "HSQDD10 FIXC HELD     AH47422 HSQDD10 ++HOLD(HSQDD10) FIXCAT FMID(HSQDD10) REASON(AH47422) RESOLVER(UI81853)",
-                    "                                       CATEGORY(IBM.ProductInstall-RequiredService)",
-                    "                                       DATE(22276).\fPAGE 0004  - NOW SET TO GLOBAL ZONE          DATE 10/30/24  TIME 11:32:52  SMP/E 37.25   SMPRPT   OUTPUT",
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
+                "features": [],
+                "source_ids": [
+                    "ORD00001",
+                    "RSU2410",
+                    "SMCCOR"
                 ],
-                "dd_name": "smprpt",
-                "name": "IBMUSER.P3620681.T0830011.C0000000",
-                "record_count": 70
+                "sysmod_id": "UI12345"
             },
             {
-                "byte_count": 0,
-                "content": [
-                    ""
-                ],
-                "dd_name": "smplist",
-                "name": "IBMUSER.P6843471.T0893250.C0000000",
-                "record_count": 1
-            },
-            {
-                "byte_count": 4841,
-                "content": [
-                    "",
-                    "--------------------------------------------------------------------------------",
-                    "DATE 10/30/24  TIME 11:32:39         SMP/E GIMJVCLT OUTPUT         SMP/E 37.25",
-                    "",
-                    "request type=\"closeRequest\" orderid=\"H99887766\" waitTime=\"116\"",
-                    "",
-                    "Oct 30, 2024 6:32:39 PM com.ibm.smp.GIMJVREQ sendRequest",
-                    "SEVERE: Request Document:\r",
-                    "POST /services/projects/ecc/ws/UpdateOrder?orderid=H99887766\r",
-                    "Content-Type: text/xml; charset=utf-8\r",
-                    "Accept: application/soap+xml, application/dime, multipart/related, text/*\r",
-                    "Host: null\r",
-                    "Cache-Control: no-cache\r",
-                    "Pragma: no-cache\r",
-                    "SOAPAction: \"\"\r",
-                    "Content-Length: null\r",
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
-                    ...
-                ],
-                "dd_name": "sysprint",
-                "name": "IBMUSER.P6843487.T0954493.C0000000",
-                "record_count": 119
+                "features": [],
+                "source_ids": [],
+                "sysmod_id": "UI98765"
             }
-        ],
-        "failed": false,
-        "ret_code": {
-            "code": 4
-        }
+        ]
     }
-
-</details>
 
 ## License
 
