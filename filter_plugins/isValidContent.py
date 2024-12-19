@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from ansible.errors import AnsibleFilterTypeError
 from ansible.parsing.yaml.objects import AnsibleUnicode
+from ansible.template.native_helpers import NativeJinjaText
 
 import re
 
@@ -13,6 +14,11 @@ class FilterModule(object):
         }
         return filters
     
+    def isString(self, input_content):
+        if type(input_content) != AnsibleUnicode and type(input_content) != str and type(input_content) != NativeJinjaText:
+            return(False)
+        return(True)
+
     def isValidOrder(self, input_content):
         possible_parms = ["content", "fortgtzones", "pending", "wait", "transferonly"]
         error_msgs = []
@@ -24,13 +30,13 @@ class FilterModule(object):
             if attr not in possible_parms:
                 error_msgs.append("Attribute '%s' is not a possible attribute for ORDER." % attr)
             else:
-                if attr == "content" and ((type(input_content[attr]) != AnsibleUnicode and type(input_content[attr]) != str) or not re.match(r"^(CRITICAL|HOLDDATA|RECOMMENDED|ALL|APARS\(.+\)|PTFS\(.+\))$", input_content[attr])):
+                if attr == "content" and (not self.isString(input_content[attr]) or not re.match(r"^(CRITICAL|HOLDDATA|RECOMMENDED|ALL|APARS\(.+\)|PTFS\(.+\))$", input_content[attr])):
                     error_msgs.append("Attribute '%s' must be one of the following: CRITICAL, HOLDDATA, RECOMMENDED, ALL, APARS(apar1, apar2, ...) or PTFS(ptf1, ptf2, ...)." % attr)
                 elif attr == "wait" and (type(input_content[attr]) != AnsibleUnicode or type(input_content[attr]) != str) and (not re.match(r"^(\d{1,4}|NOLIMIT)$", str(input_content[attr])) or (re.match(r"^(\d{1,4})$", str(input_content[attr])) and (int(input_content[attr]) < 0 or int(input_content[attr]) > 1440))):
                     error_msgs.append("Optional attribute '%s' must be either an integer in the range 0 through 1440 or the value 'NOLIMIT'." % attr)
-                elif attr == "fortgtzones" and (not isinstance(input_content[attr], list) or False in list(map(lambda x: True if (isinstance(x, str) or isinstance(x, AnsibleUnicode)) else False, input_content[attr])) or len(input_content[attr]) == 0):
+                elif attr == "fortgtzones" and (not isinstance(input_content[attr], list) or False in list(map(lambda x: True if (isinstance(x, str) or isinstance(x, AnsibleUnicode) or isinstance(x, NativeJinjaText)) else False, input_content[attr])) or len(input_content[attr]) == 0):
                     error_msgs.append("Optional attribute '%s' must be a list of strings." % attr)
-                elif attr == "pending" and ((type(input_content[attr]) != AnsibleUnicode and type(input_content[attr]) != str) or len(input_content[attr]) != 8 or not re.match(r"^(ORD\d{5})$", input_content[attr].upper())):
+                elif attr == "pending" and (not self.isString(input_content[attr]) or len(input_content[attr]) != 8 or not re.match(r"^(ORD\d{5})$", input_content[attr].upper())):
                     error_msgs.append("Optional attribute '%s' must be ORDnnnnn, where nnnnn in the range 00001 through 99999." % attr)
                 elif attr == "transferonly" and not isinstance(input_content[attr], bool):
                     error_msgs.append("Optional attribute '%s' must be a boolean value - true or false." % attr)
