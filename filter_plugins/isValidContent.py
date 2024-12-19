@@ -30,7 +30,6 @@ class FilterModule(object):
             if attr not in possible_parms:
                 error_msgs.append("Attribute '%s' is not a possible attribute for ORDER." % attr)
             else:
-                error_msgs.append(type(input_content[attr]))
                 if attr == "content" and (not self.isString(input_content[attr]) or not re.match(r"^(CRITICAL|HOLDDATA|RECOMMENDED|ALL|APARS\(.+\)|PTFS\(.+\))$", input_content[attr])):
                     error_msgs.append("Attribute '%s' must be one of the following: CRITICAL, HOLDDATA, RECOMMENDED, ALL, APARS(apar1, apar2, ...) or PTFS(ptf1, ptf2, ...)." % attr)
                 elif attr == "wait" and (type(input_content[attr]) != AnsibleUnicode or type(input_content[attr]) != str) and (not re.match(r"^(\d{1,4}|NOLIMIT)$", str(input_content[attr])) or (re.match(r"^(\d{1,4})$", str(input_content[attr])) and (int(input_content[attr]) < 0 or int(input_content[attr]) > 1440))):
