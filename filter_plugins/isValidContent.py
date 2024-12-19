@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from ansible.errors import AnsibleFilterTypeError
 from ansible.parsing.yaml.objects import AnsibleUnicode
-from ansible.template.native_helpers import NativeJinjaText
+from ansible.utils.unsafe_proxy import AnsibleUnsafeText, NativeJinjaUnsafeText, NativeJinjaText
 
 import re
 
@@ -15,9 +15,12 @@ class FilterModule(object):
         return filters
     
     def isString(self, input_content):
-        if type(input_content) != AnsibleUnicode and type(input_content) != str and type(input_content) != NativeJinjaText:
-            return(False)
-        return(True)
+        if type(input_content) in [AnsibleUnicode, str]:
+            return(True)
+        elif type(input_content) in [AnsibleUnsafeText, NativeJinjaText, NativeJinjaUnsafeText]:
+            if input_content == str(input_content):
+                return(True)
+        return(False)
 
     def isValidOrder(self, input_content):
         possible_parms = ["content", "fortgtzones", "pending", "wait", "transferonly"]
