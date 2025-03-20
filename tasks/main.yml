@@ -78,6 +78,7 @@
       - dd_input:
           dd_name: smpcntl
           content: "{{ lookup('template', 'smpcntl.j2') }}"
+  failed_when: zos_smpe_receive_order_output.ret_code.code | int > 4
   register: zos_smpe_receive_order_output
 
 - name: "If return code is different than 0 or 4, fail and display the entire job output."
