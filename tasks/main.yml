@@ -57,8 +57,16 @@
           dd_name: smplist
           return_content:
             type: text
-      - dd_output:
+      - dd_unix:
           dd_name: sysprint
+          access_group: rw
+          disposition_normal: delete
+          disposition_abnormal: keep
+          file_data_type: text
+          status_group: ocreat
+          record_format: fb
+          record_length: 133
+          path: "~/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}_zos_smpe_receive_order_sysprint"
           return_content:
             type: text
       - dd_vio:
@@ -99,29 +107,29 @@
     __smprpt: "{{ (zos_smpe_receive_order_output.dd_names | selectattr('dd_name', 'eq', 'smprpt') | list | first).content | join('\n') }}"
     __smpout_sysmods: "{{ __smpout | regex_findall('GIM22701I +RECEIVE +PROCESSING +WAS +SUCCESSFUL +FOR +SYSMOD +(\\S+)\\.') | list }}"
     __smprpt_sysmods: |-
-        {%- set result = [] -%}
-        {%- if '*NO SYSMODS PROCESSED*' not in __smprpt -%}
-          {%- set sysmods = ((__smprpt | regex_replace('( *SYSMOD +STATUS +TYPE +SOURCEID +FEATURE +STATUS FIELD COMMENTS *)', '<sep>') | regex_replace('\fPAGE \d+  +- +NOW SET.+\n', '') | regex_replace('\n +RECEIVE +\+\+HOLD/\+\+RELEASE SUMMARY REPORT', '<sep>')).split('<sep>')[1] | regex_replace('(?m)^(\S{1,7})', '<sep>\\1') | regex_replace('\n{2,}', '')).split('<sep>') | select() | list -%}
-          {%- for sysmod in sysmods -%}
-            {%- set ns = namespace(obj={}) -%}
-            {%- set source_ids = [] -%}
-            {%- set features = [] -%}
-            {{- ns.obj.__setitem__('sysmod_id', sysmod | regex_findall('^(\S+)') | first) -}}
-            {%- set content = sysmod.split('\n') | select() | list -%}
-            {%- for line in content -%}
-              {%- set parsed_line = line | regex_findall('.{7} {0,2}(.{0,12}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.*)') | flatten(levels=1) | map('trim') | list -%}
-              {%- if parsed_line[0] == 'ASSIGNED' -%}
-                {{- source_ids.append(parsed_line[2]) -}}
-              {%- elif parsed_line[0] == 'ASSOCIATED' -%}
-                {{- features.append(parsed_line[3]) -}}
-              {%- endif -%}
-            {%- endfor -%}
-            {{- ns.obj.__setitem__('source_ids', source_ids) -}}
-            {{- ns.obj.__setitem__('features', features) -}}
-            {{- result.append(ns.obj) -}}
+      {%- set result = [] -%}
+      {%- if '*NO SYSMODS PROCESSED*' not in __smprpt and 'NO SYSMODS SATISFIED THE OPERANDS' not in __smpout -%}
+        {%- set sysmods = ((__smprpt | regex_replace('( *SYSMOD +STATUS +TYPE +SOURCEID +FEATURE +STATUS FIELD COMMENTS *)', '<sep>') | regex_replace('\fPAGE \d+  +- +NOW SET.+\n', '') | regex_replace('\n +RECEIVE +SUMMARY +REPORT\n', '') | regex_replace('\n +RECEIVE +\+\+HOLD/\+\+RELEASE SUMMARY REPORT', '<sep>')).split('<sep>')[1:-1] | join('\n') | regex_replace('(?m)^(\S{1,7})', '<sep>\\1') | regex_replace('\n{2,}', '')).split('<sep>') | select() | list -%}
+        {%- for sysmod in sysmods -%}
+          {%- set ns = namespace(data={}) -%}
+          {%- set source_ids = [] -%}
+          {%- set features = [] -%}
+          {{- ns.data.__setitem__('sysmod_id', sysmod | regex_findall('^(\S+)') | first) -}}
+          {%- set content = sysmod.split('\n') | select() | list -%}
+          {%- for line in content -%}
+            {%- set parsed_line = line | regex_findall('.{7} {0,2}(.{0,12}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.{0,8}) {0,2}(.*)') | flatten(levels=1) | map('trim') | list -%}
+            {%- if parsed_line[0] == 'ASSIGNED' -%}
+              {{- source_ids.append(parsed_line[2]) -}}
+            {%- elif parsed_line[0] == 'ASSOCIATED' -%}
+              {{- features.append(parsed_line[3]) -}}
+            {%- endif -%}
           {%- endfor -%}
-        {%- endif -%}
-        {{- result -}}
+          {{- ns.data.__setitem__('source_ids', source_ids) -}}
+          {{- ns.data.__setitem__('features', features) -}}
+          {{- result.append(ns.data) -}}
+        {%- endfor -%}
+      {%- endif -%}
+      {{- result -}}
     __rsus: "{{ __smprpt_sysmods | map(attribute='source_ids') | flatten(levels=1) | select('match', 'RSU\\d{4}') | list }}"
     __puts: "{{ __smprpt_sysmods | map(attribute='source_ids') | flatten(levels=1) | select('match', 'PUT\\d{4}') | list }}"
 
