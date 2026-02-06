@@ -32,62 +32,111 @@
     msg: "ERROR: The informed SMP/E CSI data set '{{ smpe_csi | upper }}' was not found."
   when: zos_smpe_receive_order_find_csi.data_sets | length == 0
 
-- name: "Execute GIMSMP program with SMP/E RECEIVE ORDER command to submit an Internet Service Retrieval request to the IBM Automated Delivery Request server."
-  ibm.ibm_zos_core.zos_mvs_raw:
-    program_name: gimsmp
-    parm: "PROCESS=WAIT"
-    auth: true
-    dds:
-      - dd_data_set:
-          dd_name: smpcsi
-          data_set_name: "{{ smpe_csi | upper }}"
-      - dd_unix:
-          dd_name: smpnts
-          disposition_normal: keep
-          path: "{{ smpe_smpnts }}"
-      - dd_output:
-          dd_name: smpout
-          return_content:
-            type: text
-      - dd_output:
-          dd_name: smprpt
-          return_content:
-            type: text
-      - dd_output:
-          dd_name: smplist
-          return_content:
-            type: text
-      - dd_unix:
-          dd_name: sysprint
-          access_group: rw
-          disposition_normal: delete
-          disposition_abnormal: keep
-          file_data_type: text
-          status_group: ocreat
-          record_format: fb
-          record_length: 133
-          path: "~/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}_zos_smpe_receive_order_sysprint"
-          return_content:
-            type: text
-      - dd_vio:
-          dd_name: sysut1
-      - dd_vio:
-          dd_name: sysut2
-      - dd_vio:
-          dd_name: sysut3
-      - dd_vio:
-          dd_name: sysut4
-      - dd_input:
-          dd_name: clntinfo
-          content: "{{ lookup('template', 'clientinfo.j2') }}"
-      - dd_input:
-          dd_name: ordrsrvr
-          content: "{{ lookup('template', 'orderserver.j2') }}"
-      - dd_input:
-          dd_name: smpcntl
-          content: "{{ lookup('template', 'smpcntl.j2') }}"
-  failed_when: zos_smpe_receive_order_output.ret_code.code | int > 4
-  register: zos_smpe_receive_order_output
+- name: "Block to control GIMSMP and output file deletion"
+  vars:
+    __smplist: "~/{{ datetime_qualifier }}_{{ role_name }}_smplist"
+    __smpout: "~/{{ datetime_qualifier }}_{{ role_name }}_smpout"
+    __smprpt: "~/{{ datetime_qualifier }}_{{ role_name }}_smprpt"
+    __sysprint: "~/{{ datetime_qualifier }}_{{ role_name }}_sysprint"
+  block:
+    - name: "Set fact containing the current date and time to be used on the file names."
+      ansible.builtin.set_fact:
+        datetime_qualifier: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+      throttle: 1
+
+    - name: "Execute GIMSMP program with SMP/E RECEIVE ORDER command to submit an Internet Service Retrieval request to the IBM Automated Delivery Request server."
+      ibm.ibm_zos_core.zos_mvs_raw:
+        program_name: gimsmp
+        parm: "PROCESS=WAIT"
+        auth: true
+        dds:
+          - dd_data_set:
+              dd_name: smpcsi
+              data_set_name: "{{ smpe_csi | upper }}"
+          - dd_unix:
+              dd_name: smpnts
+              disposition_normal: keep
+              path: "{{ smpe_smpnts }}"
+          - dd_unix:
+              dd_name: smpout
+              access_group: rw
+              disposition_normal: keep
+              disposition_abnormal: keep
+              file_data_type: text
+              status_group: ocreat
+              record_format: fb
+              record_length: 133
+              path: "{{ __smpout }}"
+              return_content:
+                type: text
+          - dd_unix:
+              dd_name: smprpt
+              access_group: rw
+              disposition_normal: keep
+              disposition_abnormal: keep
+              file_data_type: text
+              status_group: ocreat
+              record_format: fb
+              record_length: 133
+              path: "{{ __smprpt }}"
+              return_content:
+                type: text
+          - dd_unix:
+              dd_name: smplist
+              access_group: rw
+              disposition_normal: keep
+              disposition_abnormal: keep
+              file_data_type: text
+              status_group: ocreat
+              record_format: fb
+              record_length: 133
+              path: "{{ __smplist }}"
+              return_content:
+                type: text
+          - dd_unix:
+              dd_name: sysprint
+              access_group: rw
+              disposition_normal: keep
+              disposition_abnormal: keep
+              file_data_type: text
+              status_group: ocreat
+              record_format: fb
+              record_length: 133
+              path: "{{ __sysprint }}"
+              return_content:
+                type: text
+          - dd_vio:
+              dd_name: sysut1
+          - dd_vio:
+              dd_name: sysut2
+          - dd_vio:
+              dd_name: sysut3
+          - dd_vio:
+              dd_name: sysut4
+          - dd_input:
+              dd_name: clntinfo
+              content: "{{ lookup('template', 'clientinfo.j2') }}"
+          - dd_input:
+              dd_name: ordrsrvr
+              content: "{{ lookup('template', 'orderserver.j2') }}"
+          - dd_input:
+              dd_name: smpcntl
+              content: "{{ lookup('template', 'smpcntl.j2') }}"
+      failed_when: zos_smpe_receive_order_output.ret_code.code | int > 4
+      register: zos_smpe_receive_order_output
+
+    - name: "Delete output files previously generated from GIMSMP execution"
+      ansible.builtin.file:
+        path: "{{ zos_smpe_receive_order_item }}"
+        state: absent
+      loop:
+        - "{{ __smplist }}"
+        - "{{ __smpout }}"
+        - "{{ __smprpt }}"
+        - "{{ __sysprint }}"
+      loop_control:
+        loop_var: zos_smpe_receive_order_item
+      when: zos_smpe_receive_order_output.ret_code.code | int in [0, 4]
 
 - name: "If return code is different than 0 or 4, fail and display the entire job output."
   ansible.builtin.debug:
