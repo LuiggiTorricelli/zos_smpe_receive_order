@@ -136,6 +136,8 @@
         - "{{ __sysprint }}"
       loop_control:
         loop_var: zos_smpe_receive_order_item
+      retries: 4
+      delay: 3
       when: zos_smpe_receive_order_output.ret_code.code | int in [0, 4]
 
 - name: "If return code is different than 0 or 4, fail and display the entire job output."
