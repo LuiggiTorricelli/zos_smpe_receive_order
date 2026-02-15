@@ -160,7 +160,7 @@
     __smprpt_sysmods: |-
       {%- set result = [] -%}
       {%- if '*NO SYSMODS PROCESSED*' not in __smprpt and 'NO SYSMODS SATISFIED THE OPERANDS' not in __smpout -%}
-        {%- set sysmods = ((__smprpt | regex_replace('( *SYSMOD +STATUS +TYPE +SOURCEID +FEATURE +STATUS FIELD COMMENTS *)', '<sep>') | regex_replace('\fPAGE \d+  +- +NOW SET.+\n', '') | regex_replace('\n +RECEIVE +SUMMARY +REPORT\n', '') | regex_replace('\n +RECEIVE +\+\+HOLD/\+\+RELEASE SUMMARY REPORT', '<sep>')).split('<sep>')[1:-1] | join('\n') | regex_replace('(?m)^(\S{1,7})', '<sep>\\1') | regex_replace('\n{2,}', '')).split('<sep>') | select() | list -%}
+        {%- set sysmods = ((__smprpt | regex_replace('( *SYSMOD +STATUS +TYPE +SOURCEID +FEATURE +STATUS FIELD COMMENTS *)', '<sep>') | regex_replace('[\f\d]+PAGE \d+  +- +NOW SET.+\n', '') | regex_replace('\n +RECEIVE +SUMMARY +REPORT\n', '') | regex_replace('\n +RECEIVE +\+\+HOLD/\+\+RELEASE SUMMARY REPORT[\s\S]+', '<sep>')).split('<sep>')[1:-1] | join('\n') | regex_replace('(?m)^ ?(\S{1,7})', '<sep>\\1') | regex_replace('(?m) +$', '') | regex_replace('\n{2,}', '')).split('<sep>') | select() | list -%}
         {%- for sysmod in sysmods -%}
           {%- set ns = namespace(data={}) -%}
           {%- set source_ids = [] -%}
