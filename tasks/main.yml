@@ -38,10 +38,10 @@
     __smpout: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_smpout"
     __smprpt: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_smprpt"
     __sysprint: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_sysprint"
-    __sysut1: "{{ ansible_user | upper }}.SYSUT1.{{ datetime_qualifiers_zos }}"
-    __sysut2: "{{ ansible_user | upper }}.SYSUT2.{{ datetime_qualifiers_zos }}"
-    __sysut3: "{{ ansible_user | upper }}.SYSUT3.{{ datetime_qualifiers_zos }}"   
-    __sysut4: "{{ ansible_user | upper }}.SYSUT4.{{ datetime_qualifiers_zos }}"
+    __sysut1: "{{ ansible_user | upper }}.SYSUT1.{{ datetime_qualifier_zos }}"
+    __sysut2: "{{ ansible_user | upper }}.SYSUT2.{{ datetime_qualifier_zos }}"
+    __sysut3: "{{ ansible_user | upper }}.SYSUT3.{{ datetime_qualifier_zos }}"   
+    __sysut4: "{{ ansible_user | upper }}.SYSUT4.{{ datetime_qualifier_zos }}"
   block:
     - name: "Set facts containing the current date and time to be used on the file names."
       ansible.builtin.set_fact:
