@@ -34,14 +34,19 @@
 
 - name: "Block to control GIMSMP and output file deletion"
   vars:
-    __smplist: "~/{{ datetime_qualifier }}_{{ role_name }}_smplist"
-    __smpout: "~/{{ datetime_qualifier }}_{{ role_name }}_smpout"
-    __smprpt: "~/{{ datetime_qualifier }}_{{ role_name }}_smprpt"
-    __sysprint: "~/{{ datetime_qualifier }}_{{ role_name }}_sysprint"
+    __smplist: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_smplist"
+    __smpout: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_smpout"
+    __smprpt: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_smprpt"
+    __sysprint: "~/{{ datetime_qualifier_unix }}_{{ role_name }}_sysprint"
+    __sysut1: "{{ ansible_user | upper }}.SYSUT1.{{ datetime_qualifiers_zos }}"
+    __sysut2: "{{ ansible_user | upper }}.SYSUT2.{{ datetime_qualifiers_zos }}"
+    __sysut3: "{{ ansible_user | upper }}.SYSUT3.{{ datetime_qualifiers_zos }}"   
+    __sysut4: "{{ ansible_user | upper }}.SYSUT4.{{ datetime_qualifiers_zos }}"
   block:
-    - name: "Set fact containing the current date and time to be used on the file names."
+    - name: "Set facts containing the current date and time to be used on the file names."
       ansible.builtin.set_fact:
-        datetime_qualifier: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+        datetime_qualifier_unix: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+        datetime_qualifier_zos: "D{{ lookup('pipe', 'date +%y%m%d') | string }}.T{{ lookup('pipe', 'date +%H%M%S') | string }}.MS{{ lookup('pipe', 'date +%6N') | string }}"
       throttle: 1
 
     - name: "Execute GIMSMP program with SMP/E RECEIVE ORDER command to submit an Internet Service Retrieval request to the IBM Automated Delivery Request server."
@@ -105,14 +110,46 @@
               path: "{{ __sysprint }}"
               return_content:
                 type: text
-          - dd_vio:
+          - dd_data_set:
               dd_name: sysut1
-          - dd_vio:
+              data_set_name: "{{ __sysut1 }}"
+              disposition: mod
+              disposition_normal: delete
+              disposition_abnormal: delete
+              space_type: cyl
+              space_primary: 500
+              space_secondary: 250
+              type: large
+          - dd_data_set:
               dd_name: sysut2
-          - dd_vio:
+              data_set_name: "{{ __sysut2 }}"
+              disposition: mod
+              disposition_normal: delete
+              disposition_abnormal: delete
+              space_type: cyl
+              space_primary: 500
+              space_secondary: 250
+              type: large
+          - dd_data_set:
               dd_name: sysut3
-          - dd_vio:
+              data_set_name: "{{ __sysut3 }}"
+              disposition: mod
+              disposition_normal: delete
+              disposition_abnormal: delete
+              space_type: cyl
+              space_primary: 500
+              space_secondary: 250
+              type: large
+          - dd_data_set:
               dd_name: sysut4
+              data_set_name: "{{ __sysut4 }}"
+              disposition: mod
+              disposition_normal: delete
+              disposition_abnormal: delete
+              space_type: cyl
+              space_primary: 500
+              space_secondary: 250
+              type: large
           - dd_input:
               dd_name: clntinfo
               content: "{{ lookup('template', 'clientinfo.j2') }}"
