@@ -116,40 +116,44 @@
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
+              record_format: fb
+              record_length: 80
               space_type: cyl
               space_primary: 500
               space_secondary: 250
-              type: large
           - dd_data_set:
               dd_name: sysut2
               data_set_name: "{{ __sysut2 }}"
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
+              record_format: fb
+              record_length: 80
               space_type: cyl
               space_primary: 500
               space_secondary: 250
-              type: large
           - dd_data_set:
               dd_name: sysut3
               data_set_name: "{{ __sysut3 }}"
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
+              record_format: fb
+              record_length: 80
               space_type: cyl
               space_primary: 500
               space_secondary: 250
-              type: large
           - dd_data_set:
               dd_name: sysut4
               data_set_name: "{{ __sysut4 }}"
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
+              record_format: fb
+              record_length: 80
               space_type: cyl
               space_primary: 500
               space_secondary: 250
-              type: large
           - dd_input:
               dd_name: clntinfo
               content: "{{ lookup('template', 'clientinfo.j2') }}"
