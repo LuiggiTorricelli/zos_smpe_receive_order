@@ -116,8 +116,7 @@
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
-              record_format: fb
-              record_length: 80
+              raw: true
               space_type: cyl
               space_primary: 500
               space_secondary: 250
@@ -127,8 +126,7 @@
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
-              record_format: fb
-              record_length: 80
+              raw: true
               space_type: cyl
               space_primary: 500
               space_secondary: 250
@@ -138,8 +136,7 @@
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
-              record_format: fb
-              record_length: 80
+              raw: true
               space_type: cyl
               space_primary: 500
               space_secondary: 250
@@ -149,8 +146,7 @@
               disposition: mod
               disposition_normal: delete
               disposition_abnormal: delete
-              record_format: fb
-              record_length: 80
+              raw: true
               space_type: cyl
               space_primary: 500
               space_secondary: 250
